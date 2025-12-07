@@ -9,15 +9,16 @@
 body {
     margin: 0;
     font-family: Arial, sans-serif;
-    background: #f2f4f8;
+    background: url('https://media.discordapp.net/attachments/1447097018068631574/1447321787338850376/img1.png?ex=693732f4&is=6935e174&hm=fbfd32e00d21a4440954a5d3af272535219ed8f44a9e5772e1e28eb2b6841bbb&=&format=webp&quality=lossless&width=1536&height=864') no-repeat center center fixed;
+    background-size: cover;
 }
 
 header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #d62828;
-    color: white;
+    background: #0b16ad;
+    color: rgb(255, 255, 255);
     padding: 15px 40px;
     font-size: 22px;
     font-weight: bold;
@@ -38,10 +39,10 @@ header {
 }
 
 .card {
-    background: white;
+    background: rgb(35, 35, 35);
     padding: 20px;
     border-radius: 8px;
-    border: 1.5px solid #e0e0e0;
+    border: 1.5px solid #161515;
     width: 391px;
     height: 253px;
     box-shadow: 0 3px 10px rgba(0,0,0,0.06);
@@ -61,6 +62,7 @@ header {
 .card h3 {
     margin: 0;
     font-size: 18px;
+    color: #ffffff; /* título branco para contraste no fundo escuro */
 }
 
 .card p {
@@ -72,12 +74,12 @@ header {
 .card b {
     margin: 10px 0;
     font-size: 20px;
-    color: #c30000;
+    color: #ffffff;
 }
 
 .card button {
-    background: #d62828;
-    color: white;
+    background: #fcfcfc;
+    color: black;
     width: 100%;
     border: none;
     padding: 12px;
@@ -92,7 +94,7 @@ header {
 }
 
 .card button:hover {
-    background: #b01f1f;
+    background: #8b8787;
     transform: scale(1.04);
 }
 
@@ -347,11 +349,17 @@ input.popup-input {
         <h2 id="popupNome"></h2>
         <p id="popupPreco" style="font-size:18px; color:#666;"></p>
 
-        <div class="qtd-box">
-            <button onclick="mudarQtd(-1)">-</button>
-            <span id="popupQtd" style="font-size:22px; width:40px;">1</span>
-            <button onclick="mudarQtd(1)">+</button>
-        </div>
+<div class="qtd-box">
+    <button onclick="mudarQtd(-1)">-</button>
+    <input id="popupQtdInput" type="number" min="1" value="1" 
+           style="width:60px; text-align:center; font-size:18px; padding:6px 8px;
+                  border-radius:8px; border:1px solid #ccc; background:#f2f2f2;
+                  -moz-appearance: textfield; 
+                  -webkit-appearance: none; 
+                  margin: 0;">
+    <button onclick="mudarQtd(1)">+</button>
+</div>
+
 
         <button onclick="confirmarAdicionar()" style="width:100%; padding:12px; background:#d62828; color:white; font-size:16px; border:none; border-radius:8px;">
             Adicionar ao carrinho
@@ -359,12 +367,13 @@ input.popup-input {
     </div>
 </div>
 
+
 <!-- POPUP FINALIZAR -->
 <div id="popup-finalizar">
     <div>
         <h2>Finalizar Compra</h2>
-        <input id="inputNome" class="popup-input" placeholder="Digite seu nome">
-        <input id="inputInfo" class="popup-input" placeholder="Observações">
+        <input id="inputNome" class="popup-input" placeholder="Digite seu nome e ID">
+        <input id="inputInfo" class="popup-input" placeholder="Telefone">
         <button onclick="confirmarFinalizar()" style="width:100%; padding:10px; background:#d62828; color:white; border:none; border-radius:6px;">Confirmar</button>
     </div>
 </div>
@@ -376,7 +385,8 @@ const produtos = [
     { nome: "UZI", preco: 140000, desc: "SMG compacta - Pistolas e SMGs" },
     { nome: "Skorpion V61", preco: 66000, desc: "Mobilidade alta - Pistolas e SMGs" },
     { nome: "Tec Pistol", preco: 170000, desc: "Pistola tática avançada" },
-    { nome: "Mossemberg 500", preco: 550000, desc: "Escopeta de combate" }
+    { nome: "Mossemberg 500", preco: 550000, desc: "Escopeta de combate" },
+        { nome: "carlos alberto", preco: 550000, desc: "Escopeta de combate" }
 ];
 
 let tempNome="", tempPreco=0, tempQtd=1, carrinho=[], subtotal=0, desconto=0;
@@ -404,27 +414,35 @@ function gerar(){
 }
 gerar();
 
-function abrirPopup(nome,preco){
-    tempNome=nome; tempPreco=preco; tempQtd=1;
-    document.getElementById("popupNome").innerText=nome;
-    document.getElementById("popupPreco").innerText=formatar(preco);
-    document.getElementById("popupQtd").innerText=1;
-    document.getElementById("popup-bg").style.display="flex";
-}
+function abrirPopup(nome, preco){
+    tempNome = nome;
+    tempPreco = preco;
+    tempQtd = 1;
 
+    document.getElementById("popupNome").innerText = nome;
+    document.getElementById("popupPreco").innerText = formatar(preco);
+    document.getElementById("popupQtdInput").value = 1;
+
+    document.getElementById("popup-bg").style.display = "flex";
+}
 function mudarQtd(v){
-    tempQtd+=v; if(tempQtd<1) tempQtd=1;
-    document.getElementById("popupQtd").innerText=tempQtd;
+    const input = document.getElementById("popupQtdInput");
+    let val = Number(input.value) + v;
+    if(val < 1) val = 1;
+    input.value = val;
 }
 
 function confirmarAdicionar(){
-    carrinho.push({nome:tempNome, preco:tempPreco, qtd:tempQtd});
-    subtotal+=tempPreco*tempQtd;
+    tempQtd = Number(document.getElementById("popupQtdInput").value);
+    if(tempQtd < 1) tempQtd = 1;
+
+    carrinho.push({nome: tempNome, preco: tempPreco, qtd: tempQtd});
+    subtotal += tempPreco * tempQtd;
     atualizarCarrinho();
-    document.getElementById("popup-bg").style.display="none";
+    document.getElementById("popup-bg").style.display = "none";
     toast(`${tempNome} (${tempQtd}x) adicionado ao carrinho`);
-    document.getElementById("vazioTexto").style.display="none";
-    document.getElementById("finalizar").disabled=false;
+    document.getElementById("vazioTexto").style.display = "none";
+    document.getElementById("finalizar").disabled = false;
 }
 
 function setDesc(v){
@@ -467,14 +485,14 @@ function toast(msg){
 }
 
 function atualizarContador(){
-    const qtd=carrinho.length;
-    document.getElementById("cartCount").innerText=qtd===1?"1 item":`${qtd} itens`;
+    const qtdTotal = carrinho.reduce((acc, item) => acc + item.qtd, 0);
+    document.getElementById("cartCount").innerText = qtdTotal === 1 ? "1 item" : `${qtdTotal} itens`;
 }
 
 function abrirFinalizar(){document.getElementById("popup-finalizar").style.display="flex";}
 
 function confirmarFinalizar(){
-    const nomeCliente=document.getElementById("inputNome").value||"Cliente";
+    const nomeCliente=document.getElementById("inputNome").value||"Nome";
     const infoExtra=document.getElementById("inputInfo").value||"";
 
     let lista=carrinho.map(i=>`• ${i.nome} — ${i.qtd}x — ${formatar(i.preco*i.qtd)}`).join("\n");
@@ -483,10 +501,11 @@ function confirmarFinalizar(){
     toast("Compra finalizada!");
 
     const webhookBody={
+        content: "@here",
         username:"Loja",
         embeds:[{
             title:"Compra Finalizada",
-            description:`Cliente: ${nomeCliente}\nObservações: ${infoExtra}`,
+            description:`Nome: ${nomeCliente}\nID e Telefone: ${infoExtra}`,
             color:16711680,
             fields:[
                 {name:"Itens Comprados", value:lista},
@@ -528,4 +547,3 @@ function removerItem(nome){
 
 </body>
 </html>
-
