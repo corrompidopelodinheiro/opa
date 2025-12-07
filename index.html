@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>n sei n</title>
+<title>Loja</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
 
@@ -88,7 +88,6 @@ header {
     justify-content: center;
     gap: 8px;
     align-items: center;
-
     transition: background .25s, transform .2s;
 }
 
@@ -97,6 +96,7 @@ header {
     transform: scale(1.04);
 }
 
+/* CARRINHO */
 .carrinho {
     width: 30%;
     background: white;
@@ -191,6 +191,7 @@ header {
     border-radius: 10px;
     font-size: 16px;
     transition: .4s;
+    z-index: 5000;
 }
 
 .toast.show {
@@ -198,7 +199,7 @@ header {
     animation: toastUp .45s ease;
 }
 
-#popup-bg {
+#popup-bg, #popup-finalizar {
     display:none;
     position: fixed;
     top:0; left:0;
@@ -209,14 +210,13 @@ header {
     z-index: 2000;
 }
 
-#popup {
+#popup, #popup-finalizar > div {
     background:white;
     padding:25px;
     width:330px;
     border-radius:12px;
     text-align:center;
     box-shadow:0 4px 20px rgba(0,0,0,0.3);
-
     animation: popupZoom .25s ease;
 }
 
@@ -239,7 +239,37 @@ header {
     cursor:pointer;
 }
 
-/* --- ANIMATIONS --- */
+.remove-btn {
+    background: #d62828;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    font-size: 14px;
+    padding: 2px 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .2s;
+}
+
+.remove-btn i {
+    font-size: 12px;
+}
+
+.remove-btn:hover {
+    background: #b01f1f;
+}
+
+input.popup-input {
+    width: 90%;
+    padding: 8px;
+    margin: 6px auto;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    display: block;
+}
+
 @keyframes fadeSlide {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
@@ -260,7 +290,7 @@ header {
 <body>
 
 <header>
-    bote o nome
+    Loja
     <div>
         <i class="fa fa-shopping-cart"></i> <span id="cartCount">0 itens</span>
     </div>
@@ -305,12 +335,13 @@ header {
         <p>Subtotal: <b id="subtotal">R$ 0,00</b></p>
         <p style="font-size: 22px; font-weight: bold;">Total <span id="total">R$ 0,00</span></p>
 
-        <button id="finalizar" onclick="comprar()" disabled>Finalizar Compra</button>
+        <button id="finalizar" onclick="abrirFinalizar()" disabled>Finalizar Compra</button>
     </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
+<!-- POPUP ADICIONAR -->
 <div id="popup-bg">
     <div id="popup">
         <h2 id="popupNome"></h2>
@@ -322,15 +353,23 @@ header {
             <button onclick="mudarQtd(1)">+</button>
         </div>
 
-        <button style="width:100%; padding:12px; background:#d62828; color:white; font-size:16px; border:none; border-radius:8px;"
-            onclick="confirmarAdicionar()">
+        <button onclick="confirmarAdicionar()" style="width:100%; padding:12px; background:#d62828; color:white; font-size:16px; border:none; border-radius:8px;">
             Adicionar ao carrinho
         </button>
     </div>
 </div>
 
-<script>
+<!-- POPUP FINALIZAR -->
+<div id="popup-finalizar">
+    <div>
+        <h2>Finalizar Compra</h2>
+        <input id="inputNome" class="popup-input" placeholder="Digite seu nome">
+        <input id="inputInfo" class="popup-input" placeholder="Observações">
+        <button onclick="confirmarFinalizar()" style="width:100%; padding:10px; background:#d62828; color:white; border:none; border-radius:6px;">Confirmar</button>
+    </div>
+</div>
 
+<script>
 const produtos = [
     { nome: "M1911", preco: 100000, desc: "Pistola clássica - Pistolas e SMGs" },
     { nome: "Five Seven", preco: 130000, desc: "Alta performance - Pistolas e SMGs" },
@@ -340,16 +379,15 @@ const produtos = [
     { nome: "Mossemberg 500", preco: 550000, desc: "Escopeta de combate" }
 ];
 
-function formatar(v) {
-    return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
+let tempNome="", tempPreco=0, tempQtd=1, carrinho=[], subtotal=0, desconto=0;
 
-function gerar() {
-    const area = document.getElementById("listaProdutos");
-    area.innerHTML = "";
+function formatar(v){return v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});}
 
-    produtos.forEach(p => {
-        area.innerHTML += `
+function gerar(){
+    const area=document.getElementById("listaProdutos");
+    area.innerHTML="";
+    produtos.forEach(p=>{
+        area.innerHTML+=`
             <div class="card">
                 <div>
                     <h3>${p.nome}</h3>
@@ -364,157 +402,128 @@ function gerar() {
             </div>`;
     });
 }
-
 gerar();
 
-let tempNome = "";
-let tempPreco = 0;
-let tempQtd = 1;
-
-function abrirPopup(nome, preco) {
-    tempNome = nome;
-    tempPreco = preco;
-    tempQtd = 1;
-
-    document.getElementById("popupNome").innerText = nome;
-    document.getElementById("popupPreco").innerText = formatar(preco);
-    document.getElementById("popupQtd").innerText = 1;
-
-    document.getElementById("popup-bg").style.display = "flex";
+function abrirPopup(nome,preco){
+    tempNome=nome; tempPreco=preco; tempQtd=1;
+    document.getElementById("popupNome").innerText=nome;
+    document.getElementById("popupPreco").innerText=formatar(preco);
+    document.getElementById("popupQtd").innerText=1;
+    document.getElementById("popup-bg").style.display="flex";
 }
 
-function mudarQtd(v) {
-    tempQtd += v;
-    if (tempQtd < 1) tempQtd = 1;
-
-    document.getElementById("popupQtd").innerText = tempQtd;
+function mudarQtd(v){
+    tempQtd+=v; if(tempQtd<1) tempQtd=1;
+    document.getElementById("popupQtd").innerText=tempQtd;
 }
 
-function addCarrinho(nome, preco, qtd = 1) {
-    qtd = Number(qtd);
+function confirmarAdicionar(){
+    carrinho.push({nome:tempNome, preco:tempPreco, qtd:tempQtd});
+    subtotal+=tempPreco*tempQtd;
+    atualizarCarrinho();
+    document.getElementById("popup-bg").style.display="none";
+    toast(`${tempNome} (${tempQtd}x) adicionado ao carrinho`);
+    document.getElementById("vazioTexto").style.display="none";
+    document.getElementById("finalizar").disabled=false;
+}
 
-    carrinho.push({ nome, preco, qtd });
-
-    subtotal += preco * qtd;
-
-    document.getElementById("cartCount").innerText =
-        carrinho.length === 1 ? "1 item" : carrinho.length + " itens";
-
-    document.getElementById("vazioTexto").style.display = "none";
-    document.getElementById("finalizar").disabled = false;
-
-    toast(`${nome} (${qtd}x) adicionado ao carrinho`);
-
+function setDesc(v){
+    desconto=v;
+    document.querySelectorAll(".desc-card").forEach(card=>card.classList.remove("selected"));
+    document.querySelector(`input[value="${v}"]`).parentElement.classList.add("selected");
     atualizarCarrinho();
 }
 
-function confirmarAdicionar() {
-    addCarrinho(tempNome, tempPreco, tempQtd);
-    document.getElementById("popup-bg").style.display = "none";
-}
+function atualizarCarrinho(){
+    const carrinhoDiv = document.querySelector(".carrinho");
+    carrinhoDiv.querySelectorAll(".item-carrinho").forEach(el => el.remove());
+    carrinho.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "desc-card item-carrinho";
 
-let carrinho = [];
-let subtotal = 0;
-let desconto = 0;
-
-
-function setDesc(v) {
-    desconto = v;
-    document.querySelectorAll(".desc-card").forEach(card => card.classList.remove("selected"));
-
-    const selecionado = document.querySelector(`input[value="${v}"]`).parentElement;
-    selecionado.classList.add("selected");
-
-    atualizarCarrinho();
-}
-
-function atualizarCarrinho() {
-    const total = subtotal - (subtotal * desconto / 100);
-
-    document.getElementById("subtotal").innerText = formatar(subtotal);
-    document.getElementById("total").innerText = "R$ " + total.toLocaleString("pt-BR");
-}
-
-function toast(msg) {
-    const t = document.getElementById("toast");
-    t.innerText = msg;
-    t.classList.add("show");
-    setTimeout(() => t.classList.remove("show"), 2500);
-}
-
-function atualizarContador() {
-    const qtd = carrinho.length;
-    const texto = qtd === 1 ? "1 item" : `${qtd} itens`;
-    document.getElementById("cartCount").innerText = texto;
-}
-
-let bloqueado = false;
-
-
-function comprar() {
-    if (carrinho.length === 0) return;
-
-    toast("Compra finalizada!");
-
-    let lista = carrinho.map(i => `• **${i.nome}** — ${i.qtd}x — R$ ${(i.preco * i.qtd).toLocaleString("pt-BR")}`).join("\n");
-
-    const total = subtotal - (subtotal * desconto / 100);
-
-    const webhookBody = {
-        username: "oi",
-        avatar_url: "https://media.discordapp.net/attachments/1027533147828666448/1384521044085444608/nk-image-edit-caption-gdn6nxus.gif",
-        embeds: [
-            {
-                title: " compraro",
-                description: "Um cliente finalizou uma compra na loja.",
-                color: 16711680,
-                thumbnail: {
-                    url: "https://media.discordapp.net/attachments/1027533147828666448/1384521044085444608/nk-image-edit-caption-gdn6nxus.gif"
-                },
-                fields: [
-                    {
-                        name: "Itens Comprados",
-                        value: lista
-                    },
-                    {
-                        name: "Subtotal",
-                        value: "R$ " + subtotal.toLocaleString("pt-BR"),
-                        inline: true
-                    },
-                    {
-                        name: "Desconto",
-                        value: desconto + "%",
-                        inline: true
-                    },
-                    {
-                        name: "Total Final",
-                        value: "**R$ " + total.toLocaleString("pt-BR") + "**"
-                    }
-                ],
-                timestamp: new Date().toISOString()
-            }
-        ]
-    };
-
-    fetch("https://discord.com/api/webhooks/1447114066215698624/7G0WCATcCKgbJ4lo9aWlUACmn1LQ1ZgD_SqZLhP_KQahemBmgPv2YAzt8mqka69dmMor", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(webhookBody)
-    }).then(() => {
-        setTimeout(() => bloqueado = false, 1500);
+        div.innerHTML = `
+            <div style="flex-grow:1;">
+                <div class="desc-main">${item.nome}</div>
+                <div class="desc-sub">${item.qtd}x — ${formatar(item.preco*item.qtd)}</div>
+            </div>
+            <button class="remove-btn" onclick="removerItem('${item.nome}')">
+                <i class="fa fa-trash"></i>
+            </button>
+        `;
+        carrinhoDiv.insertBefore(div, carrinhoDiv.querySelector("hr"));
     });
 
-    carrinho = [];
-    subtotal = 0;
-
-    atualizarCarrinho();
-
-    document.getElementById("vazioTexto").style.display = "block";
-    document.getElementById("finalizar").disabled = true;
-
+    const total=subtotal-(subtotal*desconto/100);
+    document.getElementById("subtotal").innerText=formatar(subtotal);
+    document.getElementById("total").innerText=formatar(total);
     atualizarContador();
 }
 
+function toast(msg){
+    const t=document.getElementById("toast");
+    t.innerText=msg;
+    t.classList.add("show");
+    setTimeout(()=>t.classList.remove("show"),2500);
+}
+
+function atualizarContador(){
+    const qtd=carrinho.length;
+    document.getElementById("cartCount").innerText=qtd===1?"1 item":`${qtd} itens`;
+}
+
+function abrirFinalizar(){document.getElementById("popup-finalizar").style.display="flex";}
+
+function confirmarFinalizar(){
+    const nomeCliente=document.getElementById("inputNome").value||"Cliente";
+    const infoExtra=document.getElementById("inputInfo").value||"";
+
+    let lista=carrinho.map(i=>`• ${i.nome} — ${i.qtd}x — ${formatar(i.preco*i.qtd)}`).join("\n");
+    const total=subtotal-(subtotal*desconto/100);
+
+    toast("Compra finalizada!");
+
+    const webhookBody={
+        username:"Loja",
+        embeds:[{
+            title:"Compra Finalizada",
+            description:`Cliente: ${nomeCliente}\nInfo extra: ${infoExtra}`,
+            color:16711680,
+            fields:[
+                {name:"Itens Comprados", value:lista},
+                {name:"Subtotal", value:formatar(subtotal), inline:true},
+                {name:"Desconto", value:desconto+"%", inline:true},
+                {name:"Total Final", value:formatar(total)}
+            ],
+            timestamp:new Date().toISOString()
+        }]
+    };
+
+    fetch("https://discord.com/api/webhooks/1447114066215698624/7G0WCATcCKgbJ4lo9aWlUACmn1LQ1ZgD_SqZLhP_KQahemBmgPv2YAzt8mqka69dmMor", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(webhookBody)
+    });
+
+    carrinho=[]; subtotal=0; desconto=0;
+    atualizarCarrinho();
+    document.getElementById("popup-finalizar").style.display="none";
+    document.getElementById("vazioTexto").style.display="block";
+    document.getElementById("finalizar").disabled=true;
+}
+
+function removerItem(nome){
+    const index=carrinho.findIndex(i=>i.nome===nome);
+    if(index>-1){
+        subtotal-=carrinho[index].preco*carrinho[index].qtd;
+        carrinho.splice(index,1);
+        atualizarCarrinho();
+        toast(`${nome} removido do carrinho`);
+        if(carrinho.length===0){
+            document.getElementById("vazioTexto").style.display="block";
+            document.getElementById("finalizar").disabled=true;
+        }
+    }
+}
 </script>
 
 </body>
