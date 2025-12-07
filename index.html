@@ -40,15 +40,18 @@ header {
 
 .card {
     background: rgb(35, 35, 35);
-    padding: 20px;
+    padding: 10px;
     border-radius: 8px;
     border: 1.5px solid #161515;
     width: 391px;
-    height: 253px;
+    height: 300px;
     box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
+    align-items: center;
+    text-align: center;
 
     animation: fadeSlide 0.4s ease forwards;
     transition: transform .2s, box-shadow .2s;
@@ -380,13 +383,22 @@ input.popup-input {
 
 <script>
 const produtos = [
-    { nome: "M1911", preco: 100000, desc: "Pistola clássica - Pistolas e SMGs" },
-    { nome: "Five Seven", preco: 130000, desc: "Alta performance - Pistolas e SMGs" },
-    { nome: "UZI", preco: 140000, desc: "SMG compacta - Pistolas e SMGs" },
-    { nome: "Skorpion V61", preco: 66000, desc: "Mobilidade alta - Pistolas e SMGs" },
-    { nome: "Tec Pistol", preco: 170000, desc: "Pistola tática avançada" },
-    { nome: "Mossemberg 500", preco: 550000, desc: "Escopeta de combate" },
-        { nome: "carlos alberto", preco: 550000, desc: "Escopeta de combate" }
+    { nome: "M1911", preco: 100000, desc: "Pistola clássica - Pistolas e SMGs", img: "https://docs.fivem.net/weapons/WEAPON_PISTOL.png" },
+    { nome: "Five Seven", preco: 130000, desc: "Alta performance - Pistolas e SMGs", img: "https://docs.fivem.net/weapons/WEAPON_PISTOL_MK2.png" },
+    { nome: "UZI", preco: 140000, desc: "SMG compacta - Pistolas e SMGs", img: "https://docs.fivem.net/weapons/WEAPON_MICROSMG.png" },
+    { nome: "Skorpion V61", preco: 66000, desc: "Mobilidade alta - Pistolas e SMGs", img: "https://docs.fivem.net/weapons/WEAPON_MINISMG.png" },
+    { nome: "Tec M31", preco: 170000, desc: "Pistola tática avançada- Pistolas e SMGs", img: "https://docs.fivem.net/weapons/WEAPON_TECPISTOL.png" },
+    { nome: "Mossberg 500", preco: 550000, desc: "Escopeta de combate - Escopetas", img: "https://docs.fivem.net/weapons/WEAPON_PUMPSHOTGUN.png" },
+    { nome: "G36C", preco: 550000, desc: "Fuzil de Assalto - Fuzis de Assalto", img: "https://docs.fivem.net/weapons/WEAPON_SPECIALCARBINE.png" },
+    { nome: "AK-47", preco: 550000, desc: "Fuzil de Assalto - Fuzis de Assalto", img: "https://docs.fivem.net/weapons/WEAPON_ASSAULTRIFLE.png" },
+    { nome: "G36C MK2", preco: 550000, desc: "Fuzil de Assalto - Fuzis de Assalto", img: "https://docs.fivem.net/weapons/WEAPON_SPECIALCARBINE_MK2.png" },
+    { nome: "Mossberg 590", preco: 550000, desc: "Escopeta de combate - Escopetas", img: "https://docs.fivem.net/weapons/WEAPON_PUMPSHOTGUN_MK2.png" },
+    { nome: "AWM Magnum", preco: 550000, desc: "Fuzil de Precisão - Fuzis de Precisão", img: "https://docs.fivem.net/weapons/WEAPON_SNIPERRIFLE.png" },
+    { nome: "M249", preco: 550000, desc: "Metralhadora Pesada - Metralhadoras", img: "https://docs.fivem.net/weapons/WEAPON_COMBATMG_MK2.png" },
+    { nome: "QBZ-65", preco: 550000, desc: "Fuzil de Assalto - Fuzis de Assalto", img: "https://docs.fivem.net/weapons/WEAPON_BULLPUPRIFLE_MK2.png" },
+    { nome: "M16", preco: 550000, desc: "Fuzil de Assalto - Fuzis de Assalto", img: "https://docs.fivem.net/weapons/WEAPON_TACTICALRIFLE.png" },
+    { nome: "Steyr AUG", preco: 550000, desc: "Fuzil de Assalto - Fuzis de Assalto", img: "https://docs.fivem.net/weapons/WEAPON_ADVANCEDRIFLE.png" },
+    { nome: "MTAR-21", preco: 550000, desc: "Fuzil de Assalto - Fuzis de Assalto", img: "https://docs.fivem.net/weapons/WEAPON_MILITARYRIFLE.png" }
 ];
 
 let tempNome="", tempPreco=0, tempQtd=1, carrinho=[], subtotal=0, desconto=0;
@@ -394,22 +406,26 @@ let tempNome="", tempPreco=0, tempQtd=1, carrinho=[], subtotal=0, desconto=0;
 function formatar(v){return v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});}
 
 function gerar(){
-    const area=document.getElementById("listaProdutos");
-    area.innerHTML="";
-    produtos.forEach(p=>{
-        area.innerHTML+=`
+    const area = document.getElementById("listaProdutos");
+    area.innerHTML = "";
+    produtos.forEach(p => {
+        area.innerHTML += `
             <div class="card">
-                <div>
-                    <h3>${p.nome}</h3>
-                    <p>${p.desc}</p>
+                <div style="text-align:center;">
+                    <img src="${p.img}" alt="${p.nome}" style="width:100%; height:130px; object-fit:cover; border-radius:6px; margin-bottom:10px;">
                 </div>
                 <div>
-                    <b>${formatar(p.preco)}</b>
+                    <h3 style="color:white;">${p.nome}</h3>
+                    <p style="color:#ccc;">${p.desc}</p>
+                </div>
+                <div>
+                    <b style="color:#eee;">${formatar(p.preco)}</b>
                     <button onclick="abrirPopup('${p.nome}', ${p.preco})">
                         <i class="fa fa-shopping-cart"></i> Adicionar
                     </button>
                 </div>
-            </div>`;
+            </div>
+        `;
     });
 }
 gerar();
